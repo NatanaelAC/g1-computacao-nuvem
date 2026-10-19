@@ -1,0 +1,92 @@
+================================================================================
+EVIDENCIAS DE TESTE — TAREFA 4 (Subida e testes funcionais)
+Ambiente com proxy reverso nginx (desafio bonus): apenas o nginx publica a 8080.
+================================================================================
+
+Comando: docker compose up -d --build
+
+SAIDA (docker compose ps):
+
+NAME                       IMAGE                  STATUS                        PORTS
+achados-perdidos-db-1      postgres:16-alpine     Up About a minute (healthy)   5432/tcp
+achados-perdidos-nginx-1   nginx:alpine           Up About a minute             0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+achados-perdidos-web-1     achados-perdidos-web   Up About a minute             5000/tcp
+
+"Os tres servicos estao no ar. O db aparece como healthy; o web nao publica
+porta no host (so 5000/tcp interno); apenas o nginx publica a 8080."
+
+
+Comando: curl.exe http://localhost:8080/health
+
+SAIDA:
+
+{"banco":"conectado","container":"ac3e535c8f13","status":"ok"}
+
+"A resposta veio pelo nginx e confirma que a aplicacao esta ok e conectada ao banco."
+
+
+Comando: curl.exe http://localhost:8080/itens
+
+SAIDA:
+
+[
+  {"criado_em":"2026-10-19T15:39:51.092138","descricao":"Oculos de grau","foto":"/fotos/31d62f798ec34e75985d40957bd83242.png","id":7,"local":"Bloco B"},
+  {"criado_em":"2026-10-18T22:39:45.202391","descricao":"Oculos de grau","foto":"/fotos/7720b14f68494109aed30c38a86329c5.png","id":6,"local":"Bloco B"},
+  {"criado_em":"2026-10-18T22:39:30.748358","descricao":"Oculos de grau","foto":"/fotos/f9feb84509ab49ef86bb65cf4379d956.png","id":5,"local":"Bloco B"},
+  {"criado_em":"2026-10-18T22:39:25.983225","descricao":"Oculos de grau","foto":"/fotos/0748b2f4258a40c783913291a5c4d03d.png","id":4,"local":"Bloco B"},
+  {"criado_em":"2026-10-18T22:06:42.232803","descricao":"Garrafa termica azul","foto":null,"id":1,"local":"Biblioteca"},
+  {"criado_em":"2026-10-18T22:06:42.232803","descricao":"Casaco preto com capuz","foto":null,"id":3,"local":"Cantina"},
+  {"criado_em":"2026-10-18T22:06:42.232803","descricao":"Carregador de notebook USB-C","foto":null,"id":2,"local":"Laboratorio 3"}
+]
+
+"A listagem mostra os itens de exemplo do init.sql e os itens cadastrados nos
+testes, incluindo os que possuem foto."
+
+
+Comando: curl.exe "http://localhost:8080/itens?local=biblio"
+
+SAIDA:
+
+[{"criado_em":"2026-10-18T22:06:42.232803","descricao":"Garrafa termica azul","foto":null,"id":1,"local":"Biblioteca"}]
+
+"O filtro funciona mesmo com o texto parcial 'biblio' (busca ILIKE %texto%)."
+
+
+Comando: curl.exe -F descricao="Oculos de grau" -F local="Bloco B" -F foto=@..\imagens\pagina-1-img1.png http://localhost:8080/itens
+
+SAIDA:
+
+{"foto":"31d62f798ec34e75985d40957bd83242.png","id":7}
+
+"O item foi cadastrado com sucesso (HTTP 201) e a foto recebeu um nome unico."
+
+
+Comando: curl.exe http://localhost:8080/estatisticas
+
+SAIDA:
+
+{"fotos_no_volume":4,"itens_no_banco":7}
+
+"Ha 7 itens no banco e 4 fotos gravadas no volume."
+
+
+Comando: curl.exe -s -o docs\evidencias\foto-teste07.png http://localhost:8080/fotos/7720b14f68494109aed30c38a86329c5.png
+
+SAIDA:
+
+Arquivo salvo em docs\evidencias\foto-teste07.png (imagem PNG retornada com sucesso pelo endpoint GET /fotos/<nome>)
+
+"O teste 07 confirma que a foto cadastrada volta corretamente pelo endpoint GET /fotos/<nome>."
+
+
+Comando: docker compose logs web --tail 5
+
+SAIDA:
+
+web-1  | [2026-10-19 15:38:26 +0000] [1] [INFO] Starting gunicorn 23.0.0
+web-1  | [2026-10-19 15:38:26 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+web-1  | [2026-10-19 15:38:26 +0000] [1] [INFO] Using worker: sync
+web-1  | [2026-10-19 15:38:26 +0000] [1] [INFO] Booting worker with pid: 8
+
+"O Gunicorn sobe em 0.0.0.0:5000 com um worker, confirmando que a aplicacao
+esta escutando na porta esperada."

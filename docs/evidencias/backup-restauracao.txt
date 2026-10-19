@@ -1,0 +1,70 @@
+================================================================================
+EVIDENCIA — DESAFIO BONUS: Backup e restauracao do volume de fotos
+================================================================================
+
+1 Conteudo atual do volume achados-perdidos_fotos
+
+Comando:
+docker run --rm --mount "type=volume,src=achados-perdidos_fotos,dst=/dados,readonly" alpine ls -l /dados
+
+SAIDA:
+
+total 12
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 0748b2f4258a40c783913291a5c4d03d.png
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 7720b14f68494109aed30c38a86329c5.png
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 f9feb84509ab49ef86bb65cf4379d956.png
+
+
+2 Backup do volume para fotos-backup.tar.gz
+
+Comando:
+docker run --rm --mount "type=volume,src=achados-perdidos_fotos,dst=/dados,readonly" --mount "type=bind,src=C:\Users\aluno\OneDrive\Área de Trabalho\G1_COMP_NUVEM\achados-perdidos,dst=/backup" alpine sh -c "tar czf /backup/fotos-backup.tar.gz -C /dados . && echo BACKUP_OK"
+
+SAIDA:
+
+BACKUP_OK
+
+Name                Length
+----                ------
+fotos-backup.tar.gz   2338
+
+"O volume foi montado em modo leitura e o conteudo foi gravado no arquivo
+fotos-backup.tar.gz na pasta atual do projeto."
+
+
+3 Criacao de um volume novo e restauracao do arquivo nele
+
+Comando:
+docker volume create achados-perdidos_fotos_restaurado
+docker run --rm --mount "type=volume,src=achados-perdidos_fotos_restaurado,dst=/dados" --mount "type=bind,src=C:\Users\aluno\OneDrive\Área de Trabalho\G1_COMP_NUVEM\achados-perdidos,dst=/backup,readonly" alpine sh -c "tar xzf /backup/fotos-backup.tar.gz -C /dados && echo RESTORE_OK"
+
+SAIDA:
+
+achados-perdidos_fotos_restaurado
+RESTORE_OK
+
+
+4 Conferencia do volume restaurado
+
+Comando:
+docker run --rm --mount "type=volume,src=achados-perdidos_fotos_restaurado,dst=/dados,readonly" alpine ls -l /dados
+
+SAIDA:
+
+total 12
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 0748b2f4258a40c783913291a5c4d03d.png
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 7720b14f68494109aed30c38a86329c5.png
+-rw-r--r--    1 1000     1000          1973 Oct 18 22:39 f9feb84509ab49ef86bb65cf4379d956.png
+
+"Os tres arquivos do volume restaurado sao identicos aos do volume original,
+provando que o backup pode ser restaurado em um volume novo."
+
+
+5 Limpeza apos o teste
+
+Comando:
+docker volume rm achados-perdidos_fotos_restaurado
+Remove-Item fotos-backup.tar.gz
+
+"O volume de teste e o arquivo .tar.gz foram removidos; apenas a evidencia
+ficou registrada. O volume original achados-perdidos_fotos nao foi alterado."

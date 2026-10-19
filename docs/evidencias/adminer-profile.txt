@@ -1,0 +1,39 @@
+================================================================================
+EVIDENCIA — DESAFIO BONUS: Adminer em profile "debug"
+================================================================================
+
+Comando: docker compose --profile debug up -d
+
+SAIDA (docker compose --profile debug ps):
+
+SERVICE   STATUS                   PORTS
+adminer   Up Less than a second    0.0.0.0:8081->8080/tcp, [::]:8081->8080/tcp
+db        Up 2 minutes (healthy)   5432/tcp
+nginx     Up About a minute        0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+web       Up About a minute        5000/tcp
+
+"Com o profile 'debug' ativo, o adminer sobe e publica a porta 8081."
+
+
+Comando: curl.exe -s -o NUL -w "HTTP %{http_code}`n" http://localhost:8081/
+
+SAIDA:
+
+HTTP 200
+
+"O painel responde: pagina de login do Adminer, com servidor padrao 'db'."
+
+
+Comando: docker compose ps   (sem --profile debug)
+
+SAIDA:
+
+SERVICE   STATUS                   PORTS
+db        Up 6 seconds (healthy)   5432/tcp
+nginx     Up Less than a second    0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+web       Up Less than a second    5000/tcp
+
+"Sem o profile, o adminer nao sobe: o up normal sobe apenas db, nginx e web.
+
+Observacao: como o adminer tem profile, o comando 'docker compose down' sem a
+flag nao o remove; para derrubar tudo use 'docker compose --profile debug down'."
